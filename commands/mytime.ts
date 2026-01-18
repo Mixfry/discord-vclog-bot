@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction } from 'discord.js';
-import { getUser, getXpForLevel, getUserRank, calculateTotalXp } from '../db.js';
+import { getUser, getXpForLevel, getUserRank } from '../db.js';
 
 export const command = {
     data: new SlashCommandBuilder()
@@ -20,7 +20,6 @@ export const command = {
         const user = await getUser(interaction.guild.id, interaction.user.id);
         const xpForNextLevel = getXpForLevel(user.level);
         const rank = await getUserRank(interaction.guild.id, interaction.user.id);
-        const totalXp = calculateTotalXp(user.level, user.xp);
 
         const formatDuration = (seconds: number) => {
             if (seconds < 3600) {
@@ -35,7 +34,7 @@ export const command = {
             .addFields(
                 { name: 'サーバー内順位', value: `\`${rank}位\``, inline: true },
                 { name: 'レベル', value: `\`${user.level}\``, inline: true },
-                { name: '総XP', value: `\`${totalXp}\``, inline: true },
+                { name: '総XP', value: `\`${user.totalXp}\``, inline: true },
                 { name: '次のレベルまで', value: `\`${xpForNextLevel - user.xp} XP\``, inline: true },
                 { name: '合計滞在時間', value: `\`${formatDuration(user.total_duration)}\``, inline: true },
                 { name: '最大滞在時間', value: `\`${formatDuration(user.max_duration)}\``, inline: true },
