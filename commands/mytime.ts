@@ -17,9 +17,9 @@ export const command = {
         }
 
         const isVisible = interaction.options.getBoolean('公開する') ?? false;
-        const user = getUser(interaction.guild.id, interaction.user.id);
+        const user = await getUser(interaction.guild.id, interaction.user.id);
         const xpForNextLevel = getXpForLevel(user.level);
-        const rank = getUserRank(interaction.guild.id, interaction.user.id);
+        const rank = await getUserRank(interaction.guild.id, interaction.user.id);
 
         const formatDuration = (seconds: number) => {
             if (seconds < 3600) {

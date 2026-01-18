@@ -2,12 +2,15 @@ import { command as help } from './commands/help.js';
 import { command as mytime } from './commands/mytime.js';
 import { command as ranking } from './commands/ranking.js';
 
+import { updateStats, initDb } from './db.js';
+
 import { Client, Events, GatewayIntentBits, Interaction, EmbedBuilder, Colors } from 'discord.js';
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
 
-client.once(Events.ClientReady, c => {
+client.once(Events.ClientReady, async c => {
     console.log(`${c.user.tag}が飛び乗った！`);
+    await initDb();
 });
 
 client.on(Events.InteractionCreate, async (interaction: Interaction) => {
@@ -37,8 +40,6 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
     }
 });
 
-import { updateStats } from './db.js';
-
 const joinTimes = new Map<string, number>();
 
 /***************
@@ -58,9 +59,8 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
             if (joinTime) {
                 const duration = Date.now() - joinTime;
 
-                // Update DB
                 try {
-                    updateStats(oldState.guild.id, oldState.member.id, duration);
+                    await updateStats(oldState.guild.id, oldState.member.id, duration);
                 } catch (e) {
                     console.error('Failed to update stats:', e);
                 }
@@ -78,9 +78,8 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
                 if (joinTime) {
                     const duration = Date.now() - joinTime;
 
-                    // Update DB
                     try {
-                        updateStats(oldState.guild.id, oldState.member.id, duration);
+                        await updateStats(oldState.guild.id, oldState.member.id, duration);
                     } catch (e) {
                         console.error('Failed to update stats:', e);
                     }

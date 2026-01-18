@@ -1,63 +1,70 @@
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const Database = require('better-sqlite3');
+import pg from 'pg';
+const { Pool } = pg;
 
-const db = new Database('voice_stats.db');
-db.pragma('journal_mode = WAL');
-
-db.exec(`
-  CREATE TABLE IF NOT EXISTS user_stats (
-    guild_id TEXT,
-    user_id TEXT,
-    xp INTEGER DEFAULT 0,
-    level INTEGER DEFAULT 0,
-    total_duration INTEGER DEFAULT 0,
-    join_count INTEGER DEFAULT 0,
-    max_duration INTEGER DEFAULT 0,
-    PRIMARY KEY (guild_id, user_id)
-  )
-`);
-
-const getUserQuery = db.prepare('SELECT * FROM user_stats WHERE guild_id = ? AND user_id = ?');
-const insertUser = db.prepare('INSERT INTO user_stats (guild_id, user_id, xp, level, total_duration, join_count, max_duration) VALUES (?, ?, 0, 1, 0, 0, 0)');
-const updateUser = db.prepare('UPDATE user_stats SET xp = ?, level = ?, total_duration = ?, join_count = ?, max_duration = ? WHERE guild_id = ? AND user_id = ?');
-const getRankQuery = db.prepare('SELECT COUNT(*) + 1 as rank FROM user_stats WHERE guild_id = ? AND (level > ? OR (level = ? AND xp > ?))');
-const getLeaderboardQuery = db.prepare('SELECT * FROM user_stats WHERE guild_id = ? ORDER BY level DESC, xp DESC LIMIT ?');
-
-export function getUser(guildId: string, userId: string): any {
-    let user = getUserQuery.get(guildId, userId) as any;
-    if (!user) {
-        insertUser.run(guildId, userId);
-        user = { xp: 0, level: 1, total_duration: 0, join_count: 0, max_duration: 0 };
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false
     }
-    return user;
+});
+
+export async function initDb() {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_stats (
+        guild_id TEXT,
+        user_id TEXT,
+        xp INTEGER DEFAULT 0,
+        level INTEGER DEFAULT 1,
+        total_duration INTEGER DEFAULT 0,
+        join_count INTEGER DEFAULT 0,
+        max_duration INTEGER DEFAULT 0,
+        PRIMARY KEY (guild_id, user_id)
+      )
+    `);
+    console.log("Database initialized.");
+}
+
+export async function getUser(guildId: string, userId: string) {
+    const res = await pool.query('SELECT * FROM user_stats WHERE guild_id = $1 AND user_id = $2', [guildId, userId]);
+
+    if (res.rows.length === 0) {
+        const newUser = { xp: 0, level: 1, total_duration: 0, join_count: 0, max_duration: 0 };
+        await pool.query(
+            'INSERT INTO user_stats (guild_id, user_id, xp, level, total_duration, join_count, max_duration) VALUES ($1, $2, 0, 1, 0, 0, 0)',
+            [guildId, userId]
+        );
+        return newUser;
+    }
+    return res.rows[0];
 }
 
 export function getXpForLevel(level: number): number {
     return 6 + Math.floor(level / 5) * 2;
 }
 
-export function getUserRank(guildId: string, userId: string): number {
-    const user = getUser(guildId, userId);
-    const result = getRankQuery.get(guildId, user.level, user.level, user.xp) as any;
-    return result.rank;
+export async function getUserRank(guildId: string, userId: string): Promise<number> {
+    const user = await getUser(guildId, userId);
+    const res = await pool.query(
+        'SELECT COUNT(*) as count FROM user_stats WHERE guild_id = $1 AND (level > $2 OR (level = $2 AND xp > $3))',
+        [guildId, user.level, user.xp]
+    );
+    return parseInt(res.rows[0].count) + 1;
 }
 
-export function getLeaderboard(guildId: string, limit: number): any[] {
-    return getLeaderboardQuery.all(guildId, limit) as any[];
+export async function getLeaderboard(guildId: string, limit: number) {
+    const res = await pool.query(
+        'SELECT * FROM user_stats WHERE guild_id = $1 ORDER BY level DESC, xp DESC LIMIT $2',
+        [guildId, limit]
+    );
+    return res.rows;
 }
 
-export function updateStats(guildId: string, userId: string, durationMs: number) {
+export async function updateStats(guildId: string, userId: string, durationMs: number) {
     const durationSec = Math.floor(durationMs / 1000);
     const durationMin = Math.floor(durationSec / 60);
-
     const xpGain = durationMin * 5;
 
-    let user = getUserQuery.get(guildId, userId) as any;
-    if (!user) {
-        insertUser.run(guildId, userId);
-        user = { xp: 0, level: 1, total_duration: 0, join_count: 0, max_duration: 0 };
-    }
+    let user = await getUser(guildId, userId);
 
     let newXp = user.xp + xpGain;
     let newLevel = user.level;
@@ -73,5 +80,9 @@ export function updateStats(guildId: string, userId: string, durationMs: number)
     const newJoinCount = user.join_count + 1;
     const newMaxDuration = Math.max(user.max_duration, durationSec);
 
-    updateUser.run(newXp, newLevel, newTotalDuration, newJoinCount, newMaxDuration, guildId, userId);
+    await pool.query(
+        `UPDATE user_stats SET xp = $1, level = $2, total_duration = $3, join_count = $4, max_duration = $5 
+         WHERE guild_id = $6 AND user_id = $7`,
+        [newXp, newLevel, newTotalDuration, newJoinCount, newMaxDuration, guildId, userId]
+    );
 }

@@ -17,7 +17,7 @@ export const command = {
         }
 
         const isVisible = interaction.options.getBoolean('公開する') ?? false;
-        const leaderboard = getLeaderboard(interaction.guild.id, 10);
+        const leaderboard = await getLeaderboard(interaction.guild.id, 10);
 
         const embed = new EmbedBuilder()
             .setColor(0xFFD700)
