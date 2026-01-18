@@ -9,7 +9,8 @@
   "main": "script.ts",
   "scripts": {
     "build": "tsc",
-    "start": "tsx --env-file=.env deploy-commands.ts && tsx --env-file=.env script.ts"
+    "start": "tsx deploy-commands.ts && tsx script.ts",
+    "dev": "tsx --env-file=.env deploy-commands.ts && tsx --env-file=.env script.ts"
   },
   "keywords": [],
   "author": "",
