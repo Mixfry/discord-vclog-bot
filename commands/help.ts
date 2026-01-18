@@ -1,37 +1,29 @@
 import { SlashCommandBuilder, EmbedBuilder, CommandInteraction } from 'discord.js';
-// embed等の機能を使う場合はインポートを忘れずに！
-
-//ここに関数を書くこともあるが、多分まだ使わない
 
 export const command = {
     data: new SlashCommandBuilder()
-        .setName('help') // コマンド名はスラッシュコマンドの名前になる、必ず小文字で
-        .setDescription('使い方を説明します'), // コマンドの説明短く簡潔に
+        .setName('help')
+        .setDescription('使い方を表示'),
     async execute(interaction: CommandInteraction) {
-        // ここの下に処理を書いていく感じ
-        // 変数を使う場合は、constやletで宣言しておく
-        // 変数は、constで宣言したものは再代入できないので注意(定数)
-        // letで宣言したものは再代入できるので、変数の値を変えたい場合はletを使う(変数)
-        // なるべくconstを使うようにしよう
-        const test = "変数";
-
         const embed = new EmbedBuilder()
-            .setTitle('title')
+            .setTitle('使い方')
             .setDescription(`
-          これは"embed"っていうものを使ってメッセージを送るやつ
-ちなみに文字列を打つ時、""←このダブルクォーテーションを使うのが一般的なんだけど、
-\`\`←このバッククォートを使うと、以下のように$マークを使って変数を組み込むことができる！
-${test}
+- コマンド
+\`/mytime\`
+> 自分のレベルや滞在時間、順位を確認できます
+\`/ranking\`
+> サーバー内の滞在時間ランキング（トップ10）を確認できます
+
+両コマンド共に「公開する」オプションをTrueにすると、通常は非表示メッセージで送られるところをサーバー全体に公開することができます、共有する際にご活用ください。
+
+- 仕組み
+> vcに5分間滞在するごとに1XP獲得します。(退室した際に付与)
+> XPが一定量貯まるとレベルが上がります
+>
+> 経験値テーブル \`[6 + Math.floor(level / 5) * 2]\` 
+> (5レベルごとに要求XPが2ずつ増えていく)
 `)
-            .addFields(
-                { name: 'field1', value: 'value1' },
-                { name: 'field2', value: 'value2' },
-                { name: 'field3', value: 'value3' },
-                { name: 'field4', value: 'value4' },
-            )
-            .setFooter({ text: 'footer' })
-            .setColor('#00ff00');
-        await interaction.reply({ embeds: [embed] });
+        await interaction.reply({ embeds: [embed], ephemeral: true });
     }
 };
 
