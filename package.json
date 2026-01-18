@@ -6,7 +6,7 @@
   "main": "script.ts",
   "scripts": {
     "build": "tsc",
-    "start": "tsx --env-file=.env deploy-commands.ts && tsx --env-file=.env script.ts"
+    "start": "node --env-file=.env dist/deploy-commands.js && node --env-file=.env dist/script.js"
   },
   "keywords": [],
   "author": "",
