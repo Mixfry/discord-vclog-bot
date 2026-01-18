@@ -59,10 +59,18 @@ export async function getLeaderboard(guildId: string, limit: number) {
     return res.rows;
 }
 
+export function calculateTotalXp(level: number, currentXp: number): number {
+    let total = 0;
+    for (let l = 1; l < level; l++) {
+        total += getXpForLevel(l);
+    }
+    return total + currentXp;
+}
+
 export async function updateStats(guildId: string, userId: string, durationMs: number) {
     const durationSec = Math.floor(durationMs / 1000);
     const durationMin = Math.floor(durationSec / 60);
-    const xpGain = durationMin * 5;
+    const xpGain = Math.floor(durationMin / 5);
 
     let user = await getUser(guildId, userId);
 

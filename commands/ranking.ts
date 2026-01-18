@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction } from 'discord.js';
-import { getLeaderboard } from '../db.js';
+import { getLeaderboard, calculateTotalXp } from '../db.js';
 
 export const command = {
     data: new SlashCommandBuilder()
@@ -50,9 +50,11 @@ export const command = {
                     durationString = `${(durationSec / 3600).toFixed(1)}時間`;
                 }
 
+                const totalXp = calculateTotalXp(user.level, user.xp);
+
                 embed.addFields({
                     name: `${rankDisplay} ${memberName}`,
-                    value: `> **レベル**: \`${user.level}\` **総XP**: \`${user.xp}\` *総滞在時間*: \`${durationString}\``,
+                    value: `> **レベル**: \`${user.level}\` **総XP**: \`${totalXp}\` *総滞在時間*: \`${durationString}\``,
                     inline: false
                 });
             }
