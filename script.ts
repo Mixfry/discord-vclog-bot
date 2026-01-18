@@ -1,10 +1,10 @@
-// コマンドを追加したらここに追加しよう その1
-// import { command as コマンド名 } from './commands/コマンド名.js';
 import { command as help } from './commands/help.js';
+import { command as mytime } from './commands/mytime.js';
+import { command as ranking } from './commands/ranking.js';
 
-import { Client, Events, GatewayIntentBits, Interaction } from 'discord.js';
+import { Client, Events, GatewayIntentBits, Interaction, EmbedBuilder, Colors } from 'discord.js';
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
 
 client.once(Events.ClientReady, c => {
     console.log(`${c.user.tag}が飛び乗った！`);
@@ -15,12 +15,14 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
 
     try {
         switch (interaction.commandName) {
-            // コマンドを追加したらここに追加しよう その2
-            //    case コマンド名.data.name:
-            //      await コマンド名.execute(interaction);
-            //      break;
             case help.data.name:
                 await help.execute(interaction);
+                break;
+            case mytime.data.name:
+                await mytime.execute(interaction);
+                break;
+            case ranking.data.name:
+                await ranking.execute(interaction);
                 break;
             default:
                 console.error(`${interaction.commandName}というコマンドには対応していません。`);
@@ -35,6 +37,64 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
     }
 });
 
+import { updateStats } from './db.js';
+
+const joinTimes = new Map<string, number>();
+
+/***************
+*** 入退室検知 ***
+****************/
+client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
+    // 入室
+    if (oldState.channelId === null && newState.channelId !== null) {
+        if (newState.member) {
+            joinTimes.set(newState.member.id, Date.now());
+        }
+    }
+    // 退室
+    else if (oldState.channelId !== null && newState.channelId === null) {
+        if (oldState.member) {
+            const joinTime = joinTimes.get(oldState.member.id);
+            if (joinTime) {
+                const duration = Date.now() - joinTime;
+
+                // Update DB
+                try {
+                    updateStats(oldState.guild.id, oldState.member.id, duration);
+                } catch (e) {
+                    console.error('Failed to update stats:', e);
+                }
+
+                joinTimes.delete(oldState.member.id);
+            }
+        }
+    }
+    // 移動した時用 
+    else if (oldState.channelId !== null && newState.channelId !== null && oldState.channelId !== newState.channelId) {
+        const oldChannel = oldState.channel;
+        if (oldChannel && oldChannel.isVoiceBased()) {
+            if (oldState.member) {
+                const joinTime = joinTimes.get(oldState.member.id);
+                if (joinTime) {
+                    const duration = Date.now() - joinTime;
+
+                    // Update DB
+                    try {
+                        updateStats(oldState.guild.id, oldState.member.id, duration);
+                    } catch (e) {
+                        console.error('Failed to update stats:', e);
+                    }
+
+                    joinTimes.delete(oldState.member.id);
+                }
+            }
+        }
+
+        if (newState.member) {
+            joinTimes.set(newState.member.id, Date.now());
+        }
+    }
+});
 const token = process.env.TOKEN;
 if (!token) {
     throw new Error("TOKEN is not defined in environment variables");
