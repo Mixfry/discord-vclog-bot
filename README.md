@@ -1,4 +1,4 @@
-# Discord Botの雛形 TypeScriptバージョン(superchat機能付き)
+# Discord Botの雛形 TypeScriptバージョン
 
 ## セットアップ手順
 
