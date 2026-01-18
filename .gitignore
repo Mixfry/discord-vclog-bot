@@ -2,7 +2,3 @@
 node_modules/
 assets/
 .DS_Store
-
-voice_stats.db
-voice_stats.db-wal
-voice_stats.db-shm

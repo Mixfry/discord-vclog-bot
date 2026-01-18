@@ -1,12 +1,10 @@
 import { REST, Routes } from 'discord.js';
+// コマンドを追加したらここに追加しよう その1
 import help from './commands/help.ts';
-import mytime from './commands/mytime.js';
-import ranking from './commands/ranking.js';
 
 const commands = [
+    // コマンドを追加したらここに追加しよう その2
     help.data.toJSON(),
-    mytime.data.toJSON(),
-    ranking.data.toJSON(),
 ];
 const token = process.env.TOKEN;
 const applicationId = process.env.APPLICATION_ID;
