@@ -3,10 +3,22 @@ import { command as mytime } from './commands/mytime.js';
 import { command as ranking } from './commands/ranking.js';
 
 import { updateStats, initDb } from './db.js';
+import express from 'express';
 
 import { Client, Events, GatewayIntentBits, Interaction, EmbedBuilder, Colors } from 'discord.js';
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+    res.send('Discord Bot is active!');
+});
+
+app.listen(PORT, () => {
+    console.log(`Web Server running on port ${PORT}`);
+});
 
 client.once(Events.ClientReady, async c => {
     console.log(`${c.user.tag}が飛び乗った！`);
