@@ -52,7 +52,7 @@ export const command = {
 
                 embed.addFields({
                     name: `${rankDisplay} ${memberName}`,
-                    value: `> **レベル**: \`${user.level}\` **総XP**: \`${user.totalXp}\` *総滞在時間*: \`${durationString}\``,
+                    value: `> **レベル**: \`${user.level}\` **総XP**: \`${user.totalXp}\` **総滞在時間**: \`${durationString}\``,
                     inline: false
                 });
             }

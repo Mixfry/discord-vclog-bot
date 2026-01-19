@@ -42,7 +42,7 @@ export function calculateStatsFromDuration(totalSeconds: number) {
 
     return {
         level,
-        xp: currentXp, // Current level progress
+        xp: currentXp, 
         totalXp: totalXp,
         xpToNext: cost - currentXp
     };
@@ -69,7 +69,6 @@ export async function getUser(guildId: string, userId: string) {
 
 export async function getUserRank(guildId: string, userId: string): Promise<number> {
     const user = await getUser(guildId, userId);
-    // Rank is based on total_duration descending
     const res = await pool.query(
         'SELECT COUNT(*) as count FROM user_stats WHERE guild_id = $1 AND total_duration > $2',
         [guildId, user.total_duration]
@@ -95,7 +94,6 @@ export async function getLeaderboard(guildId: string, limit: number) {
 export async function updateStats(guildId: string, userId: string, durationMs: number) {
     const durationSec = Math.floor(durationMs / 1000);
 
-    // Check if user exists
     const res = await pool.query('SELECT * FROM user_stats WHERE guild_id = $1 AND user_id = $2', [guildId, userId]);
 
     if (res.rows.length === 0) {
