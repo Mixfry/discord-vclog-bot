@@ -2,11 +2,15 @@ import { REST, Routes } from 'discord.js';
 import help from './commands/help.js';
 import mytime from './commands/mytime.js';
 import ranking from './commands/ranking.js';
+import setting from './commands/setting.js';
+import global_ranking from './commands/global_ranking.js';
 
 const commands = [
     help.data.toJSON(),
     mytime.data.toJSON(),
     ranking.data.toJSON(),
+    setting.data.toJSON(),
+    global_ranking.data.toJSON(),
 ];
 const token = process.env.TOKEN;
 const applicationId = process.env.APPLICATION_ID;

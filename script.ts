@@ -1,6 +1,8 @@
 import { command as help } from './commands/help.js';
 import { command as mytime } from './commands/mytime.js';
 import { command as ranking } from './commands/ranking.js';
+import { command as setting } from './commands/setting.js';
+import { command as global_ranking } from './commands/global_ranking.js';
 
 import { updateStats, initDb } from './db.js';
 import express from 'express';
@@ -38,6 +40,12 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
                 break;
             case ranking.data.name:
                 await ranking.execute(interaction);
+                break;
+            case setting.data.name:
+                await setting.execute(interaction);
+                break;
+            case global_ranking.data.name:
+                await global_ranking.execute(interaction);
                 break;
             default:
                 console.error(`${interaction.commandName}というコマンドには対応していません。`);
