@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction, MessageFlags } from 'discord.js';
 import { getUser, getXpForLevel, getUserRank } from '../db.js';
 
 export const command = {
@@ -12,11 +12,14 @@ export const command = {
         ),
     async execute(interaction: ChatInputCommandInteraction) {
         if (!interaction.guild) {
-            await interaction.reply({ content: 'このコマンドはサーバー内でのみ使用できます。', ephemeral: true });
+            await interaction.reply({ content: 'このコマンドはサーバー内でのみ使用できます。', flags: MessageFlags.Ephemeral });
             return;
         }
 
         const isVisible = interaction.options.getBoolean('公開する') ?? false;
+
+        await interaction.deferReply({ flags: !isVisible ? MessageFlags.Ephemeral : undefined });
+
         const user = await getUser(interaction.guild.id, interaction.user.id);
         const xpForNextLevel = getXpForLevel(user.level);
         const rank = await getUserRank(interaction.guild.id, interaction.user.id);
@@ -43,7 +46,7 @@ export const command = {
             )
             .setThumbnail(interaction.user.displayAvatarURL());
 
-        await interaction.reply({ embeds: [embed], ephemeral: !isVisible });
+        await interaction.editReply({ embeds: [embed] });
     }
 };
 

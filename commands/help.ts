@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, EmbedBuilder, CommandInteraction } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, CommandInteraction, MessageFlags } from 'discord.js';
 
 export const command = {
     data: new SlashCommandBuilder()
@@ -16,7 +16,7 @@ export const command = {
 > (trueで非表示、falseで表示)
 \`/ranking\`
 > サーバー内の滞在時間ランキング（トップ10）を確認できます
-\`/global_ranking\`
+\`/globalranking\`
 > 全サーバーの滞在時間ランキングを確認できます
 > (他のサーバーのユーザーは「匿名」と表示されます)
 
@@ -29,7 +29,7 @@ export const command = {
 > 経験値テーブル \`[6 + Math.floor(level / 5) * 2]\` 
 > (5レベルごとに要求XPが2ずつ増えていく)
 `)
-        await interaction.reply({ embeds: [embed], ephemeral: true });
+        await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     }
 };
 

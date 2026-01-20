@@ -2,12 +2,12 @@ import { command as help } from './commands/help.js';
 import { command as mytime } from './commands/mytime.js';
 import { command as ranking } from './commands/ranking.js';
 import { command as setting } from './commands/setting.js';
-import { command as global_ranking } from './commands/global_ranking.js';
+import { command as global_ranking } from './commands/globalranking.js';
 
 import { updateStats, initDb } from './db.js';
 import express from 'express';
 
-import { Client, Events, GatewayIntentBits, Interaction, EmbedBuilder, Colors } from 'discord.js';
+import { Client, Events, GatewayIntentBits, Interaction, EmbedBuilder, Colors, MessageFlags } from 'discord.js';
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
 
@@ -53,9 +53,9 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
     } catch (error) {
         console.error('コマンド実行中にエラーが発生しました:', error);
         if (interaction.replied || interaction.deferred) {
-            await interaction.followUp({ content: 'コマンド実行中にエラーが発生しました。', ephemeral: true });
+            await interaction.followUp({ content: 'コマンド実行中にエラーが発生しました。', flags: MessageFlags.Ephemeral });
         } else {
-            await interaction.reply({ content: 'コマンド実行中にエラーが発生しました。', ephemeral: true });
+            await interaction.reply({ content: 'コマンド実行中にエラーが発生しました。', flags: MessageFlags.Ephemeral });
         }
     }
 });

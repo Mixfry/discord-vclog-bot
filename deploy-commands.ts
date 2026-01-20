@@ -3,7 +3,7 @@ import help from './commands/help.js';
 import mytime from './commands/mytime.js';
 import ranking from './commands/ranking.js';
 import setting from './commands/setting.js';
-import global_ranking from './commands/global_ranking.js';
+import global_ranking from './commands/globalranking.js';
 
 const commands = [
     help.data.toJSON(),

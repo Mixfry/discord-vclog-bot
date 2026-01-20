@@ -3,13 +3,15 @@ import { getGlobalLeaderboard } from '../db.js';
 
 export const command = {
     data: new SlashCommandBuilder()
-        .setName('global_ranking')
+        .setName('globalranking')
         .setDescription('全サーバーの滞在時間ランキングを表示'),
     async execute(interaction: ChatInputCommandInteraction) {
+        await interaction.deferReply();
+
         const leaderboard = await getGlobalLeaderboard(10);
 
         const embed = new EmbedBuilder()
-            .setColor(0x00BFFF) // Deep Sky Blue for global distinction
+            .setColor(0x00BFFF)
             .setTitle(`全体滞在時間ランキング`)
             .setTimestamp();
 
@@ -49,7 +51,7 @@ export const command = {
             }
         }
 
-        await interaction.reply({ embeds: [embed] });
+        await interaction.editReply({ embeds: [embed] });
     }
 };
 
