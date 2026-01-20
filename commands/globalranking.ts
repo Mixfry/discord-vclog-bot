@@ -12,7 +12,7 @@ export const command = {
 
         const embed = new EmbedBuilder()
             .setColor(0x00BFFF)
-            .setTitle(`全体滞在時間ランキング`)
+            .setTitle(`全サーバー滞在時間ランキング`)
             .setTimestamp();
 
         if (leaderboard.length === 0) {
