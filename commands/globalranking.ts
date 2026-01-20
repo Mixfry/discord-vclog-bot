@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction, MessageFlags } from 'discord.js';
 import { getGlobalLeaderboard } from '../db.js';
 
 export const command = {
@@ -6,7 +6,7 @@ export const command = {
         .setName('globalranking')
         .setDescription('全サーバーの滞在時間ランキングを表示'),
     async execute(interaction: ChatInputCommandInteraction) {
-        await interaction.deferReply();
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         const leaderboard = await getGlobalLeaderboard(10);
 
