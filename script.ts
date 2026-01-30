@@ -50,12 +50,30 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
             default:
                 console.error(`${interaction.commandName}というコマンドには対応していません。`);
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error('コマンド実行中にエラーが発生しました:', error);
-        if (interaction.replied || interaction.deferred) {
-            await interaction.followUp({ content: 'コマンド実行中にエラーが発生しました。', flags: MessageFlags.Ephemeral });
-        } else {
-            await interaction.reply({ content: 'コマンド実行中にエラーが発生しました。', flags: MessageFlags.Ephemeral });
+        if (error.code === 10062) {
+            console.warn('Unknown interaction (10062) detected. Ignored.');
+            return;
+        }
+        try {
+            if (interaction.replied || interaction.deferred) {
+                await interaction.followUp({ content: 'コマンド実行中にエラーが発生しました。', flags: MessageFlags.Ephemeral });
+            } else {
+                await interaction.reply({ content: 'コマンド実行中にエラーが発生しました。', flags: MessageFlags.Ephemeral });
+            }
+        } catch (secondaryError: any) {
+            if (secondaryError.code === 40060) {
+                try {
+                    await interaction.followUp({ content: 'コマンド実行中にエラーが発生しました。', flags: MessageFlags.Ephemeral });
+                } catch (tertiaryError) {
+                    console.error('エラー通知の送信(リカバリー)にも失敗しました:', tertiaryError);
+                }
+            } else if (secondaryError.code === 10062) {
+                return;
+            } else {
+                console.error('エラー通知の送信に失敗しました:', secondaryError);
+            }
         }
     }
 });
