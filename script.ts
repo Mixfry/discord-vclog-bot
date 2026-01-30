@@ -4,7 +4,7 @@ import { command as ranking } from './commands/ranking.js';
 import { command as setting } from './commands/setting.js';
 import { command as global_ranking } from './commands/globalranking.js';
 
-import { updateStats, initDb } from './db.js';
+import { updateStats, initDb, setUserSetting } from './db.js';
 import express from 'express';
 
 import { Client, Events, GatewayIntentBits, Interaction, EmbedBuilder, Colors, MessageFlags } from 'discord.js';
@@ -68,13 +68,17 @@ const joinTimes = new Map<string, number>();
 client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
     // 入室
     if (oldState.channelId === null && newState.channelId !== null) {
-        if (newState.member) {
+        if (newState.member && !newState.member.user.bot) {
             joinTimes.set(newState.member.id, Date.now());
         }
     }
     // 退室
     else if (oldState.channelId !== null && newState.channelId === null) {
         if (oldState.member) {
+            if (oldState.member.user.bot) {
+                await setUserSetting(oldState.member.id, true);
+                return;
+            }
             const joinTime = joinTimes.get(oldState.member.id);
             if (joinTime) {
                 const duration = Date.now() - joinTime;
@@ -93,7 +97,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
     else if (oldState.channelId !== null && newState.channelId !== null && oldState.channelId !== newState.channelId) {
         const oldChannel = oldState.channel;
         if (oldChannel && oldChannel.isVoiceBased()) {
-            if (oldState.member) {
+            if (oldState.member && !oldState.member.user.bot) {
                 const joinTime = joinTimes.get(oldState.member.id);
                 if (joinTime) {
                     const duration = Date.now() - joinTime;
@@ -109,7 +113,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
             }
         }
 
-        if (newState.member) {
+        if (newState.member && !newState.member.user.bot) {
             joinTimes.set(newState.member.id, Date.now());
         }
     }
