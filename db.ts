@@ -50,7 +50,8 @@ export function calculateStatsFromDuration(totalSeconds: number) {
         level,
         xp: currentXp,
         totalXp: totalXp,
-        xpToNext: cost - currentXp
+        xpToNext: cost - currentXp,
+        reqXp: cost 
     };
 }
 
@@ -88,10 +89,28 @@ export async function getUserRank(guildId: string, userId: string): Promise<numb
     return parseInt(res.rows[0].count) + 1;
 }
 
+export async function getGlobalUserRank(userId: string): Promise<number> {
+    const userRes = await pool.query('SELECT SUM(total_duration) as total FROM user_stats WHERE user_id = $1', [userId]);
+    const userTotal = parseInt(userRes.rows[0]?.total || '0');
+
+    if (userTotal === 0) return 0; 
+    const res = await pool.query(`
+        SELECT COUNT(*) as count FROM (
+            SELECT us.user_id, SUM(us.total_duration) as total_duration
+            FROM user_stats us
+            LEFT JOIN user_settings set ON us.user_id = set.user_id
+            WHERE (set.hide_ranking IS NULL OR set.hide_ranking = FALSE)
+            GROUP BY us.user_id
+        ) as totals
+        WHERE total_duration > $1
+    `, [userTotal]);
+
+    return parseInt(res.rows[0].count) + 1;
+}
+
 export async function getLeaderboard(guildId: string, limit: number) {
     const res = await pool.query(`
-        SELECT us.* 
-        FROM user_stats us
+        SELECT us.* FROM user_stats us
         LEFT JOIN user_settings set ON us.user_id = set.user_id
         WHERE us.guild_id = $1 
           AND (set.hide_ranking IS NULL OR set.hide_ranking = FALSE)
@@ -115,7 +134,7 @@ export async function getGlobalLeaderboard(limit: number) {
         LEFT JOIN user_settings set ON us.user_id = set.user_id
         WHERE (set.hide_ranking IS NULL OR set.hide_ranking = FALSE)
         GROUP BY us.user_id
-        ORDER BY total_duration DESC
+        ORDER BY total_duration DESC 
         LIMIT $1
     `, [limit]);
 
