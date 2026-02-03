@@ -1,6 +1,29 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, MessageFlags, AttachmentBuilder } from 'discord.js';
 import { getUser, getUserRank, getGlobalUserRank } from '../db.js';
-import { createCanvas, loadImage } from 'canvas';
+import { createCanvas, loadImage, registerFont } from 'canvas';
+import fs from 'fs';
+import path from 'path';
+
+const FONT_FAMILY = 'Noto Sans JP';
+let isFontRegistered = false;
+
+function loadLocalFont() {
+    if (isFontRegistered) return;
+
+    try {
+        const fontPath = path.join(process.cwd(), 'assets', 'fonts', 'NotoSansJP-Bold.ttf');
+        
+        if (fs.existsSync(fontPath)) {
+            registerFont(fontPath, { family: FONT_FAMILY });
+            isFontRegistered = true;
+            console.log(`Font registered: ${fontPath}`);
+        } else {
+            console.warn(`Font file not found at: ${fontPath}. using system fonts.`);
+        }
+    } catch (e) {
+        console.error('Failed to register font:', e);
+    }
+}
 
 // 角丸四角
 function roundRect(ctx: any, x: number, y: number, width: number, height: number, radius: number) {
@@ -89,6 +112,8 @@ export const command = {
         await interaction.deferReply({ flags: !isVisible ? MessageFlags.Ephemeral : undefined });
 
         try {
+            loadLocalFont();
+
             const userId = interaction.user.id;
             const guildId = interaction.guild.id;
             
@@ -148,7 +173,7 @@ export const command = {
                 ctx.lineWidth = 2;
                 
                 const rankText = `#${rank.toLocaleString()}`;
-                ctx.font = 'bold 14px sans-serif';
+                ctx.font = `bold 14px "${FONT_FAMILY}", sans-serif`;
                 const rankTextWidth = ctx.measureText(rankText).width;
                 const badgePadding = 10;
                 const badgeWidth = Math.max(32, rankTextWidth + badgePadding * 2);
@@ -173,7 +198,7 @@ export const command = {
             }
 
             ctx.fillStyle = '#FFFFFF';
-            ctx.font = 'bold 42px sans-serif';
+            ctx.font = `bold 42px "${FONT_FAMILY}", sans-serif`;
             ctx.textAlign = 'left';
             ctx.textBaseline = 'top';
             ctx.fillText(interaction.user.username, 140, 40);
@@ -181,7 +206,7 @@ export const command = {
             // 順位表示
             const drawRankPill = (text: string, x: number, y: number, rankValue: number) => {
                 const pillHeight = 24;
-                ctx.font = 'bold 12px sans-serif';
+                ctx.font = `bold 12px "${FONT_FAMILY}", sans-serif`;
                 const textWidth = ctx.measureText(text).width;
                 const paddingH = 12;
                 const pillWidth = textWidth + (paddingH * 2);
@@ -213,7 +238,7 @@ export const command = {
                 ctx.stroke();
 
                 ctx.fillStyle = textColor; 
-                ctx.font = 'bold 12px sans-serif';
+                ctx.font = `bold 12px "${FONT_FAMILY}", sans-serif`;
                 ctx.textAlign = 'left'; 
                 ctx.textBaseline = 'middle';
                 ctx.fillText(text, x + paddingH, y + pillHeight / 2 + 1);
@@ -232,13 +257,13 @@ export const command = {
 
             // レベル
             ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-            ctx.font = 'bold 14px sans-serif';
+            ctx.font = `bold 14px "${FONT_FAMILY}", sans-serif`;
             ctx.textAlign = 'right';
             ctx.textBaseline = 'top';
             ctx.fillText('LEVEL', width - 40, 45);
 
             ctx.fillStyle = '#FFFFFF';
-            ctx.font = 'italic bold 72px sans-serif';
+            ctx.font = `italic bold 72px "${FONT_FAMILY}", sans-serif`;
             ctx.fillText(user.level.toLocaleString(), width - 35, 55);
 
 
@@ -277,7 +302,7 @@ export const command = {
 
             // 経験値バー
             ctx.fillStyle = '#FFFFFF';
-            ctx.font = 'bold 12px sans-serif'; 
+            ctx.font = `bold 12px "${FONT_FAMILY}", sans-serif`;
             ctx.textAlign = 'right';
             ctx.textBaseline = 'middle';
             ctx.shadowColor = 'rgba(0,0,0,0.8)';
@@ -308,14 +333,13 @@ export const command = {
                 }
 
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-                ctx.font = 'bold 15px sans-serif';
+                ctx.font = `bold 15px "${FONT_FAMILY}", sans-serif`;
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'top';
                 ctx.fillText(label, labelX, y + 20); 
 
-                // 値
                 ctx.fillStyle = '#FFFFFF';
-                ctx.font = 'bold 24px sans-serif';
+                ctx.font = `bold 24px "${FONT_FAMILY}", sans-serif`;
                 ctx.textAlign = 'right';
                 ctx.textBaseline = 'bottom';
                 ctx.fillText(value, x + w - 20, y + h - 15);
